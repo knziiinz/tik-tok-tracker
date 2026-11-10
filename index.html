@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Rewards Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col items-center">
+
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <h1 class="text-xl font-bold text-center mb-1 text-pink-500">TikTok Tracker</h1>
+        <p class="text-xs text-slate-400 text-center mb-5">Controle diário do Programa de Recompensas</p>
+
+        <!-- Formulário de Lançamento -->
+        <form id="tracker-form" class="space-y-3">
+            <div>
+                <label class="text-xs text-slate-400 font-medium">Data do Faturamento</label>
+                <input type="date" id="data-input" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-pink-500" required>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs text-slate-400 font-medium">Conta 1 (USD)</label>
+                    <input type="number" step="0.01" id="c1" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-medium">Conta 2 (USD)</label>
+                    <input type="number" step="0.01" id="c2" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-medium">Conta 3 (USD)</label>
+                    <input type="number" step="0.01" id="c3" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 font-medium">Conta 4 (USD)</label>
+                    <input type="number" step="0.01" id="c4" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs text-slate-400 font-medium">Cotação do Dólar (BRL)</label>
+                <input type="number" step="0.01" id="cotacao" placeholder="5.50" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
+            </div>
+
+            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-2.5 rounded-lg transition-all text-sm mt-2">
+                Salvar Lançamento
+            </button>
+        </form>
+
+        <!-- Histórico Recente -->
+        <div class="mt-6">
+            <h2 class="text-sm font-semibold text-slate-300 mb-3 border-b border-slate-800 pb-1">Histórico Recente</h2>
+            <div id="historico-list" class="space-y-2 max-h-60 overflow-y-auto text-sm">
+                <!-- Os registros entram aqui via JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Pega data de hoje por padrão
+        document.getElementById('data-input').valueAsDate = new Date();
+
+        // Busca cotação atual do dólar de graça
+        fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL')
+            .then(res => res.json())
+            .then(data => {
+                if(data.USDBRL) {
+                    document.getElementById('cotacao').value = parseFloat(data.USDBRL.bid).toFixed(2);
+                }
+            }).catch(() => { document.getElementById('cotacao').value = '5.50'; });
+
+        const form = document.getElementById('tracker-form');
+        const historicoList = document.getElementById('historico-list');
+
+        let registros = JSON.parse(localStorage.getItem('tiktok_tracker')) || [];
+
+        function renderHistorico() {
+            historicoList.innerHTML = '';
+            if(registros.length === 0) {
+                historicoList.innerHTML = '<p class="text-xs text-slate-500 text-center py-2">Nenhum registro ainda.</p>';
+                return;
+            }
+
+            registros.sort((a,b) => new Date(b.data) - new Date(a.data)).forEach(reg => {
+                const totalUSD = reg.c1 + reg.c2 + reg.c3 + reg.c4;
+                const totalBRL = totalUSD * reg.cotacao;
+
+                const div = document.createElement('div');
+                div.className = "bg-slate-800/50 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center";
+                div.innerHTML = `
+                    <div>
+                        <p class="text-xs text-slate-400">${reg.data.split('-').reverse().join('/')}</p>
+                        <p class="font-bold text-slate-200">US$ ${totalUSD.toFixed(2)} <span class="text-xs font-normal text-emerald-400">(R$ ${totalBRL.toFixed(2)})</span></p>
+                    </div>
+                `;
+                historicoList.appendChild(div);
+            });
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const novoRegistro = {
+                data: document.getElementById('data-input').value,
+                c1: parseFloat(document.getElementById('c1').value) || 0,
+                c2: parseFloat(document.getElementById('c2').value) || 0,
+                c3: parseFloat(document.getElementById('c3').value) || 0,
+                c4: parseFloat(document.getElementById('c4').value) || 0,
+                cotacao: parseFloat(document.getElementById('cotacao').value) || 5.50
+            };
+
+            registros.push(novoRegistro);
+            localStorage.setItem('tiktok_tracker', JSON.stringify(registros));
+            form.reset();
+            document.getElementById('data-input').valueAsDate = new Date();
+            renderHistorico();
+        });
+
+        renderHistorico();
+    </script>
+</body>
+</html>
