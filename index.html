@@ -1,122 +1,1362 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Rewards Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TikTok Creator Rewards - Financial Studio</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        tiktok: {
+                            red: '#FF0050',
+                            cyan: '#00F2FE',
+                            dark: '#0A0A0E',
+                            card: '#12121A',
+                            border: '#1F1F2E',
+                            accent: '#252632'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #060609;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #F3F4F6;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Glassmorphism styling */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(22, 22, 32, 0.7) 0%, rgba(14, 14, 22, 0.8) 100%);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card-hover:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 0, 80, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(255, 0, 80, 0.2);
+        }
+
+        .gradient-text-tiktok {
+            background: linear-gradient(135deg, #FF0050 0%, #00F2FE 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-button {
+            background: linear-gradient(135deg, #FF0050 0%, #D80045 100%);
+            box-shadow: 0 4px 20px rgba(255, 0, 80, 0.35);
+        }
+
+        .gradient-button:hover {
+            background: linear-gradient(135deg, #FF1A62 0%, #E6004C 100%);
+            box-shadow: 0 6px 24px rgba(255, 0, 80, 0.5);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A0A0E;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #252632;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #FF0050;
+        }
+
+        /* Glowing Effects */
+        .glow-red {
+            box-shadow: 0 0 25px -5px rgba(255, 0, 80, 0.4);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 25px -5px rgba(0, 242, 254, 0.3);
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col items-center">
+<body class="pb-24 lg:pb-8 min-h-screen text-slate-100 flex flex-col antialiased selection:bg-pink-500 selection:text-white">
 
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-        <h1 class="text-xl font-bold text-center mb-1 text-pink-500">TikTok Tracker</h1>
-        <p class="text-xs text-slate-400 text-center mb-5">Controle diário do Programa de Recompensas</p>
-
-        <!-- Formulário de Lançamento -->
-        <form id="tracker-form" class="space-y-3">
-            <div>
-                <label class="text-xs text-slate-400 font-medium">Data do Faturamento</label>
-                <input type="date" id="data-input" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-sm focus:outline-none focus:border-pink-500" required>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="text-xs text-slate-400 font-medium">Conta 1 (USD)</label>
-                    <input type="number" step="0.01" id="c1" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-30 backdrop-blur-xl bg-black/60 border-b border-white/5 px-4 py-3.5 lg:px-8">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-tiktok-red to-tiktok-cyan p-0.5 flex items-center justify-center glow-red">
+                    <div class="w-full h-full bg-black/90 rounded-[10px] flex items-center justify-center">
+                        <i class="fa-brands fa-tiktok text-xl text-white"></i>
+                    </div>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-400 font-medium">Conta 2 (USD)</label>
-                    <input type="number" step="0.01" id="c2" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 font-medium">Conta 3 (USD)</label>
-                    <input type="number" step="0.01" id="c3" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
-                </div>
-                <div>
-                    <label class="text-xs text-slate-400 font-medium">Conta 4 (USD)</label>
-                    <input type="number" step="0.01" id="c4" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-extrabold text-lg tracking-tight text-white">TikTok Rewards</h1>
+                        <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full bg-tiktok-red/20 text-tiktok-red border border-tiktok-red/30">PRO</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">Gestão Consolidada de Monetização</p>
                 </div>
             </div>
 
-            <div>
-                <label class="text-xs text-slate-400 font-medium">Cotação do Dólar (BRL)</label>
-                <input type="number" step="0.01" id="cotacao" placeholder="5.50" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-pink-500" required>
+            <!-- Header Right Actions -->
+            <div class="flex items-center gap-3">
+                <!-- Currency Toggle Button -->
+                <div class="bg-tiktok-card p-1 rounded-xl border border-white/10 flex items-center gap-1 text-xs font-semibold">
+                    <button onclick="setCurrencyMode('USD')" id="btn-curr-usd" class="px-2.5 py-1.5 rounded-lg transition-all text-slate-400">USD</button>
+                    <button onclick="setCurrencyMode('DUAL')" id="btn-curr-dual" class="px-2.5 py-1.5 rounded-lg transition-all bg-tiktok-red text-white shadow-lg shadow-tiktok-red/30">DUAL</button>
+                    <button onclick="setCurrencyMode('BRL')" id="btn-curr-brl" class="px-2.5 py-1.5 rounded-lg transition-all text-slate-400">BRL</button>
+                </div>
+
+                <!-- Live Exchange Rate Badge -->
+                <div class="hidden md:flex items-center gap-2 bg-slate-900/80 border border-white/10 px-3 py-1.5 rounded-xl text-xs">
+                    <span class="text-slate-400">USD/BRL:</span>
+                    <span id="header-exchange-rate" class="font-bold text-emerald-400 flex items-center gap-1">
+                        <i class="fa-solid fa-spinner fa-spin text-xs"></i> R$ --
+                    </span>
+                    <button onclick="fetchExchangeRate()" title="Atualizar Cotação" class="text-slate-400 hover:text-white transition-colors ml-1">
+                        <i class="fa-solid fa-rotate-right text-[11px]"></i>
+                    </button>
+                </div>
+
+                <!-- Quick Entry Button Desktop -->
+                <button onclick="openModal('modal-entry')" class="hidden sm:flex items-center gap-2 gradient-button px-4 py-2 rounded-xl text-xs font-bold transition-all transform active:scale-95">
+                    <i class="fa-solid fa-plus text-sm"></i>
+                    <span>Lançar Ganho</span>
+                </button>
+
+                <!-- Settings Button Desktop -->
+                <button onclick="openModal('modal-settings')" class="w-9 h-9 rounded-xl bg-tiktok-card border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-gear text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container Layout -->
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 w-full flex-grow">
+
+        <!-- TAB 1: DASHBOARD / VISÃO GERAL -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+
+            <!-- Hero Summary Card -->
+            <div class="glass-card rounded-3xl p-6 md:p-8 relative overflow-hidden border border-white/10">
+                <div class="absolute -right-16 -top-16 w-64 h-64 bg-tiktok-red/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-tiktok-cyan/15 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    <div class="lg:col-span-7 space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-300">
+                            <i class="fa-solid fa-calendar-check text-tiktok-red"></i>
+                            <span>Acumulado desde 1º de Janeiro (Ano Atual)</span>
+                        </div>
+
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Faturamento Consolidado Total</p>
+                            <div class="flex flex-wrap items-baseline gap-3">
+                                <h2 id="total-accumulated-primary" class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white">US$ 0,00</h2>
+                                <span id="total-accumulated-secondary" class="text-lg sm:text-2xl font-bold text-emerald-400">R$ 0,00</span>
+                            </div>
+                        </div>
+
+                        <!-- Yesterday Earnings Highlight -->
+                        <div class="pt-2 border-t border-white/10 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-slate-400 font-medium">Ontem (Dia Anterior)</p>
+                                <p id="yesterday-total-primary" class="text-lg sm:text-2xl font-bold text-white mt-0.5">US$ 0,00</p>
+                                <p id="yesterday-total-secondary" class="text-xs text-emerald-400 font-medium">R$ 0,00</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-400 font-medium">Média Diária por Conta</p>
+                                <p id="avg-daily-per-account" class="text-lg sm:text-2xl font-bold text-white mt-0.5">US$ 0,00</p>
+                                <p class="text-xs text-slate-400">em 4 perfis ativos</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column Quick Stats Cards -->
+                    <div class="lg:col-span-5 grid grid-cols-2 gap-3 sm:gap-4">
+                        <div class="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-medium text-slate-400">Contas Monitoradas</span>
+                                <div class="w-7 h-7 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-2xl font-extrabold text-white">4</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">100% ativas</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-medium text-slate-400">Melhor Desempenho</span>
+                                <div class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <p id="top-performing-account-name" class="text-sm font-bold text-white truncate">Conta 1</p>
+                                <p id="top-performing-account-value" class="text-xs font-semibold text-emerald-400 mt-0.5">US$ 0,00</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-medium text-slate-400">Dias Registrados</span>
+                                <div class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <p id="total-days-logged" class="text-2xl font-extrabold text-white">0</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">dias no histórico</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-medium text-slate-400">Cotação Atual</span>
+                                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-dollar-sign"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <p id="hero-exchange-rate" class="text-lg font-bold text-white">R$ 5,50</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">AwesomeAPI (Live)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold py-2.5 rounded-lg transition-all text-sm mt-2">
-                Salvar Lançamento
+            <!-- Quick Overview of 4 TikTok Accounts Cards -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-tiktok-red"></i>
+                        <span>Resumo por Perfil</span>
+                    </h2>
+                    <button onclick="switchTab('tab-accounts')" class="text-xs font-semibold text-tiktok-cyan hover:underline flex items-center gap-1">
+                        <span>Gerenciar Perfis</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+
+                <div id="dashboard-accounts-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Cards generated dynamically -->
+                </div>
+            </div>
+
+            <!-- Mini Chart Section in Dashboard -->
+            <div class="glass-card rounded-2xl p-5 border border-white/10 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-white text-base">Evolução do Faturamento Diário</h3>
+                        <p class="text-xs text-slate-400">Visualização rápida dos últimos 7 dias registrados</p>
+                    </div>
+                    <button onclick="switchTab('tab-analytics')" class="px-3 py-1.5 rounded-lg bg-white/5 text-xs text-slate-300 font-medium hover:bg-white/10 transition-colors">
+                        Ver Análise Completa
+                    </button>
+                </div>
+                <div class="h-64 w-full">
+                    <canvas id="dashboardQuickChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 2: ACCOUNTS / PERFIS DO TIKTOK -->
+        <section id="tab-accounts" class="tab-content hidden space-y-6">
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white">Perfis do TikTok (4 Contas)</h2>
+                    <p class="text-xs text-slate-400 mt-1">Gerencie os nomes e handles dos seus 4 perfis de monetização.</p>
+                </div>
+                <button onclick="openModal('modal-entry')" class="gradient-button px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Adicionar Faturamento Diário</span>
+                </button>
+            </div>
+
+            <!-- 4 Account Detailed Cards -->
+            <div id="full-accounts-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Dynamically Populated Cards -->
+            </div>
+
+        </section>
+
+        <!-- TAB 3: ANALYTICS & HISTORY / HISTÓRICO COMPLETO -->
+        <section id="tab-analytics" class="tab-content hidden space-y-6">
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white">Análise & Histórico Diário</h2>
+                    <p class="text-xs text-slate-400 mt-1">Gráficos de evolução temporal e controle detalhado de lançamentos.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportDataJSON()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Exportar JSON</span>
+                    </button>
+                    <button onclick="openModal('modal-entry')" class="gradient-button px-4 py-2 rounded-xl text-xs font-bold">
+                        + Novo Registro
+                    </button>
+                </div>
+            </div>
+
+            <!-- Full Analytics Chart -->
+            <div class="glass-card rounded-2xl p-5 border border-white/10 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+                    <div>
+                        <h3 class="font-bold text-white text-base">Desempenho Geral do Faturamento</h3>
+                        <p class="text-xs text-slate-400">Total diário somado das 4 contas</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="chart-timeframe" onchange="updateMainAnalyticsChart()" class="bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-slate-300 font-medium focus:outline-none focus:border-tiktok-red">
+                            <option value="7">Últimos 7 dias</option>
+                            <option value="15">Últimos 15 dias</option>
+                            <option value="30" selected>Últimos 30 dias</option>
+                            <option value="all">Todo o Histórico</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="h-80 w-full">
+                    <canvas id="fullAnalyticsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Account Distribution Percentage Progress Bars -->
+            <div class="glass-card rounded-2xl p-5 border border-white/10 space-y-4">
+                <h3 class="font-bold text-white text-sm">Distribuição de Faturamento por Conta</h3>
+                <div id="distribution-progress-bars" class="space-y-3">
+                    <!-- Progress bars inserted here dynamically -->
+                </div>
+            </div>
+
+            <!-- Detailed History Table -->
+            <div class="glass-card rounded-2xl border border-white/10 overflow-hidden space-y-4 p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <h3 class="font-bold text-white text-base flex items-center gap-2">
+                        <i class="fa-solid fa-list text-tiktok-red"></i>
+                        <span>Registros Diários</span>
+                    </h3>
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <input type="text" id="history-search" oninput="renderHistoryTable()" placeholder="Buscar por data..." class="w-full bg-slate-900 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-tiktok-red">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-white/5 text-slate-400 font-semibold uppercase tracking-wider">
+                            <tr>
+                                <th class="p-3.5 rounded-l-xl">Data</th>
+                                <th class="p-3.5">Conta 1</th>
+                                <th class="p-3.5">Conta 2</th>
+                                <th class="p-3.5">Conta 3</th>
+                                <th class="p-3.5">Conta 4</th>
+                                <th class="p-3.5">Total (USD)</th>
+                                <th class="p-3.5">Total (BRL)</th>
+                                <th class="p-3.5 text-center rounded-r-xl">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-white/5">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar for Mobile -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-2xl border-t border-white/10 px-4 py-2 lg:hidden">
+        <div class="max-w-md mx-auto flex items-center justify-around">
+            <button onclick="switchTab('tab-dashboard')" id="nav-btn-dashboard" class="mobile-nav-btn flex flex-col items-center gap-1 text-tiktok-red">
+                <i class="fa-solid fa-house-chimney text-lg"></i>
+                <span class="text-[10px] font-bold">Início</span>
             </button>
-        </form>
+            <button onclick="switchTab('tab-accounts')" id="nav-btn-accounts" class="mobile-nav-btn flex flex-col items-center gap-1 text-slate-400">
+                <i class="fa-solid fa-users-viewfinder text-lg"></i>
+                <span class="text-[10px] font-medium">Contas</span>
+            </button>
 
-        <!-- Histórico Recente -->
-        <div class="mt-6">
-            <h2 class="text-sm font-semibold text-slate-300 mb-3 border-b border-slate-800 pb-1">Histórico Recente</h2>
-            <div id="historico-list" class="space-y-2 max-h-60 overflow-y-auto text-sm">
-                <!-- Os registros entram aqui via JavaScript -->
+            <!-- Floating Quick Add Button in Nav -->
+            <button onclick="openModal('modal-entry')" class="w-12 h-12 -mt-5 rounded-full gradient-button flex items-center justify-center text-white text-xl shadow-lg shadow-tiktok-red/50 active:scale-90 transition-transform">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+
+            <button onclick="switchTab('tab-analytics')" id="nav-btn-analytics" class="mobile-nav-btn flex flex-col items-center gap-1 text-slate-400">
+                <i class="fa-solid fa-chart-line text-lg"></i>
+                <span class="text-[10px] font-medium">Análise</span>
+            </button>
+            <button onclick="openModal('modal-settings')" class="mobile-nav-btn flex flex-col items-center gap-1 text-slate-400">
+                <i class="fa-solid fa-gear text-lg"></i>
+                <span class="text-[10px] font-medium">Ajustes</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MODAL 1: Daily Revenue Entry Modal -->
+    <div id="modal-entry" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-card w-full max-w-lg rounded-3xl border border-white/10 p-6 space-y-5 shadow-2xl relative">
+            <button onclick="closeModal('modal-entry')" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-white/10 pb-3">
+                <div class="w-10 h-10 rounded-xl bg-tiktok-red/20 text-tiktok-red flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Lançar Faturamento Diário</h3>
+                    <p class="text-xs text-slate-400">Informe quanto cada perfil faturou no dia selecionado</p>
+                </div>
+            </div>
+
+            <form id="form-entry" onsubmit="handleSaveEntry(event)" class="space-y-4">
+                <input type="hidden" id="entry-editing-id" value="">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Data do Faturamento</label>
+                    <input type="date" id="entry-date" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-tiktok-red">
+                </div>
+
+                <!-- 4 Input Fields for Accounts -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label id="lbl-c1" class="block text-xs font-medium text-slate-400 mb-1">Conta 1 (USD)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <input type="number" step="0.01" min="0" id="entry-c1" placeholder="0.00" oninput="calcModalPreview()" required class="w-full bg-slate-900 border border-white/10 rounded-xl pl-7 pr-3 py-2 text-sm text-white focus:outline-none focus:border-tiktok-red">
+                        </div>
+                    </div>
+                    <div>
+                        <label id="lbl-c2" class="block text-xs font-medium text-slate-400 mb-1">Conta 2 (USD)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <input type="number" step="0.01" min="0" id="entry-c2" placeholder="0.00" oninput="calcModalPreview()" required class="w-full bg-slate-900 border border-white/10 rounded-xl pl-7 pr-3 py-2 text-sm text-white focus:outline-none focus:border-tiktok-red">
+                        </div>
+                    </div>
+                    <div>
+                        <label id="lbl-c3" class="block text-xs font-medium text-slate-400 mb-1">Conta 3 (USD)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <input type="number" step="0.01" min="0" id="entry-c3" placeholder="0.00" oninput="calcModalPreview()" required class="w-full bg-slate-900 border border-white/10 rounded-xl pl-7 pr-3 py-2 text-sm text-white focus:outline-none focus:border-tiktok-red">
+                        </div>
+                    </div>
+                    <div>
+                        <label id="lbl-c4" class="block text-xs font-medium text-slate-400 mb-1">Conta 4 (USD)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+                            <input type="number" step="0.01" min="0" id="entry-c4" placeholder="0.00" oninput="calcModalPreview()" required class="w-full bg-slate-900 border border-white/10 rounded-xl pl-7 pr-3 py-2 text-sm text-white focus:outline-none focus:border-tiktok-red">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exchange Rate Option for this Entry -->
+                <div class="p-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-300 font-medium block">Cotação do Dólar Utilizada</span>
+                        <span id="modal-exchange-info" class="text-[11px] text-slate-400">AwesomeAPI Cotação em tempo real</span>
+                    </div>
+                    <div class="w-28 relative">
+                        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">R$</span>
+                        <input type="number" step="0.01" min="0.1" id="entry-rate" oninput="calcModalPreview()" required class="w-full bg-slate-900 border border-white/10 rounded-lg pl-8 pr-2 py-1 text-xs text-right text-white focus:outline-none focus:border-tiktok-red">
+                    </div>
+                </div>
+
+                <!-- Calculation Live Summary -->
+                <div class="p-4 bg-gradient-to-r from-tiktok-red/10 to-tiktok-cyan/10 rounded-xl border border-white/10 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-400 block font-medium">Total Calculado do Dia</span>
+                        <span id="modal-preview-usd" class="text-lg font-bold text-white">US$ 0,00</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block font-medium">Convertido em Real</span>
+                        <span id="modal-preview-brl" class="text-lg font-bold text-emerald-400">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-entry')" class="px-4 py-2.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="gradient-button px-6 py-2.5 rounded-xl text-xs font-bold text-white shadow-lg">
+                        Salvar Registro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Account Profile Edit Modal -->
+    <div id="modal-account-edit" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-card w-full max-w-md rounded-3xl border border-white/10 p-6 space-y-5 shadow-2xl relative">
+            <button onclick="closeModal('modal-account-edit')" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-white/10 pb-3">
+                <div class="w-10 h-10 rounded-xl bg-tiktok-cyan/20 text-tiktok-cyan flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Editar Perfil do TikTok</h3>
+                    <p class="text-xs text-slate-400">Personalize o nome da conta e informações</p>
+                </div>
+            </div>
+
+            <form id="form-account-edit" onsubmit="handleSaveAccountProfile(event)" class="space-y-4">
+                <input type="hidden" id="edit-account-index" value="0">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nome do Perfil / Canal</label>
+                    <input type="text" id="edit-account-name" required class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-tiktok-red">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Handle / @Usuário</label>
+                    <input type="text" id="edit-account-handle" required placeholder="@seuusuario" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-tiktok-red">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nicho do Conteúdo</label>
+                    <input type="text" id="edit-account-niche" placeholder="Ex: Cortes, Curiosidades, Entretenimento" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-tiktok-red">
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-account-edit')" class="px-4 py-2.5 text-xs font-semibold text-slate-400 hover:text-white">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="gradient-button px-6 py-2.5 rounded-xl text-xs font-bold text-white">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Global Settings & Data Management -->
+    <div id="modal-settings" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-card w-full max-w-md rounded-3xl border border-white/10 p-6 space-y-5 shadow-2xl relative">
+            <button onclick="closeModal('modal-settings')" class="absolute top-5 right-5 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-white/10 pb-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Configurações & Dados</h3>
+                    <p class="text-xs text-slate-400">Gerenciamento de armazenamento local</p>
+                </div>
+            </div>
+
+            <div class="space-y-4 text-xs text-slate-300">
+                <div class="p-3 bg-white/5 rounded-xl border border-white/5 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold text-white">Estado da Cotação</span>
+                        <span id="settings-rate-display" class="text-emerald-400 font-bold">R$ 5,50</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">Cotação do Dólar atualizada automaticamente via API pública da AwesomeAPI.</p>
+                </div>
+
+                <div class="p-3 bg-white/5 rounded-xl border border-white/5 space-y-2">
+                    <span class="font-semibold text-white block">Backup e Restauração</span>
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="exportDataJSON()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg font-semibold text-slate-200 text-[11px] flex items-center justify-center gap-1.5 border border-white/10">
+                            <i class="fa-solid fa-download"></i> Baixar JSON
+                        </button>
+                        <label class="w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-lg font-semibold text-slate-200 text-[11px] flex items-center justify-center gap-1.5 border border-white/10 cursor-pointer text-center">
+                            <i class="fa-solid fa-upload"></i> Importar JSON
+                            <input type="file" id="file-import-json" accept=".json" onchange="importDataJSON(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-xl space-y-2">
+                    <span class="font-semibold text-red-400 block">Zona de Perigo</span>
+                    <button onclick="resetToSampleData()" class="w-full py-2 bg-red-600/30 hover:bg-red-600/50 text-red-200 border border-red-500/30 rounded-lg font-semibold text-[11px]">
+                        Redefinir para Dados Demonstração
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Toast Notification Overlay -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Application Script Logic -->
     <script>
-        // Pega data de hoje por padrão
-        document.getElementById('data-input').valueAsDate = new Date();
+        // GLOBAL APP STATE & CONSTANTS
+        const STORAGE_KEY_RECORDS = 'tiktok_creator_records_v2';
+        const STORAGE_KEY_ACCOUNTS = 'tiktok_creator_accounts_v2';
 
-        // Busca cotação atual do dólar de graça
-        fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL')
-            .then(res => res.json())
-            .then(data => {
-                if(data.USDBRL) {
-                    document.getElementById('cotacao').value = parseFloat(data.USDBRL.bid).toFixed(2);
+        let appState = {
+            currencyMode: 'DUAL', // 'USD', 'BRL', 'DUAL'
+            exchangeRate: 5.50,
+            records: [],
+            accounts: [
+                { name: 'Conta 1', handle: '@conta_um', niche: 'Cortes & Vídeos', avatarBg: 'from-pink-500 to-rose-600' },
+                { name: 'Conta 2', handle: '@conta_dois', niche: 'Humor & Entretenimento', avatarBg: 'from-purple-500 to-indigo-600' },
+                { name: 'Conta 3', handle: '@conta_tres', niche: 'Curiosidades', avatarBg: 'from-cyan-500 to-blue-600' },
+                { name: 'Conta 4', handle: '@conta_quatro', niche: 'Motivacional', avatarBg: 'from-emerald-500 to-teal-600' }
+            ]
+        };
+
+        let dashboardChartInstance = null;
+        let analyticsChartInstance = null;
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            loadInitialData();
+            fetchExchangeRate();
+            switchTab('tab-dashboard');
+            setDefaultEntryDate();
+        });
+
+        // NAVIGATION LOGIC
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(tabId);
+            if (target) target.classList.remove('hidden');
+
+            // Update mobile active nav styles
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                btn.classList.remove('text-tiktok-red');
+                btn.classList.add('text-slate-400');
+            });
+
+            const activeBtnMap = {
+                'tab-dashboard': 'nav-btn-dashboard',
+                'tab-accounts': 'nav-btn-accounts',
+                'tab-analytics': 'nav-btn-analytics'
+            };
+
+            if (activeBtnMap[tabId]) {
+                const activeNav = document.getElementById(activeBtnMap[tabId]);
+                if (activeNav) {
+                    activeNav.classList.remove('text-slate-400');
+                    activeNav.classList.add('text-tiktok-red');
                 }
-            }).catch(() => { document.getElementById('cotacao').value = '5.50'; });
-
-        const form = document.getElementById('tracker-form');
-        const historicoList = document.getElementById('historico-list');
-
-        let registros = JSON.parse(localStorage.getItem('tiktok_tracker')) || [];
-
-        function renderHistorico() {
-            historicoList.innerHTML = '';
-            if(registros.length === 0) {
-                historicoList.innerHTML = '<p class="text-xs text-slate-500 text-center py-2">Nenhum registro ainda.</p>';
-                return;
             }
 
-            registros.sort((a,b) => new Date(b.data) - new Date(a.data)).forEach(reg => {
-                const totalUSD = reg.c1 + reg.c2 + reg.c3 + reg.c4;
-                const totalBRL = totalUSD * reg.cotacao;
+            // Re-render chart depending on tab
+            if (tabId === 'tab-dashboard') {
+                renderDashboardQuickChart();
+            } else if (tabId === 'tab-analytics') {
+                updateMainAnalyticsChart();
+            }
+        }
 
-                const div = document.createElement('div');
-                div.className = "bg-slate-800/50 border border-slate-800 p-2.5 rounded-lg flex justify-between items-center";
-                div.innerHTML = `
-                    <div>
-                        <p class="text-xs text-slate-400">${reg.data.split('-').reverse().join('/')}</p>
-                        <p class="font-bold text-slate-200">US$ ${totalUSD.toFixed(2)} <span class="text-xs font-normal text-emerald-400">(R$ ${totalBRL.toFixed(2)})</span></p>
+        // FETCH LIVE EXCHANGE RATE (USD/BRL)
+        async function fetchExchangeRate() {
+            const rateBadge = document.getElementById('header-exchange-rate');
+            try {
+                const response = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
+                const data = await response.json();
+
+                if (data && data.USDBRL) {
+                    const rate = parseFloat(data.USDBRL.bid);
+                    appState.exchangeRate = rate;
+
+                    if (rateBadge) {
+                        rateBadge.innerHTML = `R$ ${rate.toFixed(2)}`;
+                    }
+                    document.getElementById('hero-exchange-rate').innerText = `R$ ${rate.toFixed(2)}`;
+                    document.getElementById('settings-rate-display').innerText = `R$ ${rate.toFixed(2)}`;
+                    document.getElementById('entry-rate').value = rate.toFixed(2);
+
+                    renderAllViews();
+                }
+            } catch (error) {
+                console.warn('Erro ao carregar cotação via API, usando taxa padrão (5.50):', error);
+                if (rateBadge) rateBadge.innerHTML = `R$ ${appState.exchangeRate.toFixed(2)} (Offline)`;
+            }
+        }
+
+        // LOAD LOCALSTORAGE DATA OR POPULATE DEMO DATA
+        function loadInitialData() {
+            const savedRecords = localStorage.getItem(STORAGE_KEY_RECORDS);
+            const savedAccounts = localStorage.getItem(STORAGE_KEY_ACCOUNTS);
+
+            if (savedAccounts) {
+                appState.accounts = JSON.parse(savedAccounts);
+            }
+
+            if (savedRecords) {
+                appState.records = JSON.parse(savedRecords);
+            } else {
+                appState.records = generateSampleRecords();
+                saveRecords();
+            }
+
+            updateAccountLabelsInModals();
+            renderAllViews();
+        }
+
+        function saveRecords() {
+            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(appState.records));
+        }
+
+        function saveAccounts() {
+            localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(appState.accounts));
+        }
+
+        // GENERATE DEMO DATA (LAST 14 DAYS)
+        function generateSampleRecords() {
+            const records = [];
+            const today = new Date();
+
+            for (let i = 0; i < 14; i++) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+
+                const dateStr = d.toISOString().split('T')[0];
+
+                const base1 = 12.50 + Math.random() * 25;
+                const base2 = 8.00 + Math.random() * 20;
+                const base3 = 15.00 + Math.random() * 30;
+                const base4 = 5.50 + Math.random() * 15;
+
+                records.push({
+                    id: 'rec_' + Date.now() + '_' + i,
+                    date: dateStr,
+                    c1: parseFloat(base1.toFixed(2)),
+                    c2: parseFloat(base2.toFixed(2)),
+                    c3: parseFloat(base3.toFixed(2)),
+                    c4: parseFloat(base4.toFixed(2)),
+                    rate: 5.50
+                });
+            }
+
+            return records.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        function resetToSampleData() {
+            if (confirm('Deseja substituir todos os dados atuais pelos dados de demonstração?')) {
+                appState.records = generateSampleRecords();
+                saveRecords();
+                renderAllViews();
+                closeModal('modal-settings');
+                showToast('Dados redefinidos para demonstração!');
+            }
+        }
+
+        // CURRENCY TOGGLE
+        function setCurrencyMode(mode) {
+            appState.currencyMode = mode;
+
+            ['usd', 'dual', 'brl'].forEach(m => {
+                const btn = document.getElementById(`btn-curr-${m}`);
+                if (btn) {
+                    if (m.toUpperCase() === mode) {
+                        btn.className = "px-2.5 py-1.5 rounded-lg transition-all bg-tiktok-red text-white shadow-lg shadow-tiktok-red/30 font-bold";
+                    } else {
+                        btn.className = "px-2.5 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white";
+                    }
+                }
+            });
+
+            renderAllViews();
+        }
+
+        // FORMAT CURRENCY HELPER
+        function formatVal(amountUSD, rateOverride = null) {
+            const rate = rateOverride || appState.exchangeRate;
+            const amountBRL = amountUSD * rate;
+
+            const strUSD = `US$ ${amountUSD.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const strBRL = `R$ ${amountBRL.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            if (appState.currencyMode === 'USD') return { primary: strUSD, secondary: '' };
+            if (appState.currencyMode === 'BRL') return { primary: strBRL, secondary: '' };
+            return { primary: strUSD, secondary: strBRL };
+        }
+
+        // RENDER ALL VIEWS
+        function renderAllViews() {
+            renderDashboardSummary();
+            renderAccountsGrid();
+            renderAccountsFullPage();
+            renderHistoryTable();
+            renderDistributionBars();
+            renderDashboardQuickChart();
+            updateMainAnalyticsChart();
+        }
+
+        // RENDER DASHBOARD SUMMARY & CARDS
+        function renderDashboardSummary() {
+            const records = appState.records;
+
+            const currentYear = new Date().getFullYear();
+            const yearRecords = records.filter(r => new Date(r.date).getFullYear() === currentYear);
+
+            let accumulatedUSD = 0;
+            yearRecords.forEach(r => {
+                accumulatedUSD += (r.c1 + r.c2 + r.c3 + r.c4);
+            });
+
+            const accFormatted = formatVal(accumulatedUSD);
+            document.getElementById('total-accumulated-primary').innerText = accFormatted.primary;
+            document.getElementById('total-accumulated-secondary').innerText = accFormatted.secondary;
+
+            const sortedRecords = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const yesterdayRecord = sortedRecords[0];
+
+            let yesterdayUSD = 0;
+            if (yesterdayRecord) {
+                yesterdayUSD = yesterdayRecord.c1 + yesterdayRecord.c2 + yesterdayRecord.c3 + yesterdayRecord.c4;
+            }
+
+            const yestFormatted = formatVal(yesterdayUSD, yesterdayRecord?.rate);
+            document.getElementById('yesterday-total-primary').innerText = yestFormatted.primary;
+            document.getElementById('yesterday-total-secondary').innerText = yestFormatted.secondary;
+
+            const totalDays = records.length || 1;
+            const avgDailyAll = accumulatedUSD / totalDays;
+            const avgPerAccount = avgDailyAll / 4;
+            document.getElementById('avg-daily-per-account').innerText = `US$ ${avgPerAccount.toFixed(2)}`;
+
+            const accTotals = [0, 0, 0, 0];
+            records.forEach(r => {
+                accTotals[0] += r.c1;
+                accTotals[1] += r.c2;
+                accTotals[2] += r.c3;
+                accTotals[3] += r.c4;
+            });
+
+            let maxVal = -1;
+            let maxIndex = 0;
+            accTotals.forEach((v, idx) => {
+                if (v > maxVal) {
+                    maxVal = v;
+                    maxIndex = idx;
+                }
+            });
+
+            document.getElementById('top-performing-account-name').innerText = appState.accounts[maxIndex].name;
+            document.getElementById('top-performing-account-value').innerText = `US$ ${maxVal.toFixed(2)} acumulado`;
+            document.getElementById('total-days-logged').innerText = records.length;
+        }
+
+        // RENDER DASHBOARD ACCOUNTS GRID (4 CARDS)
+        function renderAccountsGrid() {
+            const container = document.getElementById('dashboard-accounts-grid');
+            if (!container) return;
+
+            const records = appState.records;
+            const sortedRecords = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const latest = sortedRecords[0] || { c1: 0, c2: 0, c3: 0, c4: 0 };
+
+            const totals = [0, 0, 0, 0];
+            records.forEach(r => {
+                totals[0] += r.c1;
+                totals[1] += r.c2;
+                totals[2] += r.c3;
+                totals[3] += r.c4;
+            });
+
+            container.innerHTML = '';
+
+            appState.accounts.forEach((acc, idx) => {
+                const totalAccUSD = totals[idx];
+                const yesterdayAccUSD = latest[`c${idx + 1}`] || 0;
+
+                const formattedTotal = formatVal(totalAccUSD);
+                const formattedYest = formatVal(yesterdayAccUSD, latest.rate);
+
+                const card = document.createElement('div');
+                card.className = "glass-card rounded-2xl p-4 border border-white/10 glass-card-hover flex flex-col justify-between";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-white/5 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr ${acc.avatarBg} flex items-center justify-center font-bold text-white text-xs shadow-md">C${idx + 1}</div>
+                            <div>
+                                <h3 class="font-bold text-white text-sm truncate max-w-[110px]">${acc.name}</h3>
+                                <p class="text-[11px] text-slate-400">${acc.handle}</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativa</span>
+                    </div>
+
+                    <div class="py-3 space-y-2">
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-medium block">Total Acumulado</span>
+                            <span class="text-base font-extrabold text-white">${formattedTotal.primary}</span>
+                            ${formattedTotal.secondary ? `<span class="text-xs text-emerald-400 font-semibold block">${formattedTotal.secondary}</span>` : ''}
+                        </div>
+
+                        <div class="flex justify-between items-center pt-2 border-t border-white/5">
+                            <span class="text-[11px] text-slate-400">Dia Anterior:</span>
+                            <span class="text-xs font-bold text-tiktok-cyan">${formattedYest.primary}</span>
+                        </div>
                     </div>
                 `;
-                historicoList.appendChild(div);
+                container.appendChild(card);
             });
         }
 
-        form.addEventListener('submit', (e) => {
+        // RENDER ACCOUNTS PAGE
+        function renderAccountsFullPage() {
+            const container = document.getElementById('full-accounts-container');
+            if (!container) return;
+
+            const records = appState.records;
+            const sortedRecords = [...records].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const latest = sortedRecords[0] || { c1: 0, c2: 0, c3: 0, c4: 0 };
+
+            const totals = [0, 0, 0, 0];
+            records.forEach(r => {
+                totals[0] += r.c1;
+                totals[1] += r.c2;
+                totals[2] += r.c3;
+                totals[3] += r.c4;
+            });
+
+            container.innerHTML = '';
+
+            appState.accounts.forEach((acc, idx) => {
+                const totalAccUSD = totals[idx];
+                const yesterdayAccUSD = latest[`c${idx + 1}`] || 0;
+
+                const formattedTotal = formatVal(totalAccUSD);
+                const formattedYest = formatVal(yesterdayAccUSD, latest.rate);
+
+                const card = document.createElement('div');
+                card.className = "glass-card rounded-2xl p-6 border border-white/10 space-y-4 relative overflow-hidden";
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr ${acc.avatarBg} flex items-center justify-center font-extrabold text-white text-lg shadow-lg">C${idx + 1}</div>
+                            <div>
+                                <h3 class="font-extrabold text-white text-base">${acc.name}</h3>
+                                <p class="text-xs text-slate-400">${acc.handle}</p>
+                                <span class="inline-block mt-1 px-2 py-0.5 rounded-md bg-white/5 text-[10px] text-slate-300 font-medium">${acc.niche}</span>
+                            </div>
+                        </div>
+                        <button onclick="openEditAccountModal(${idx})" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 flex items-center justify-center text-xs transition-colors" title="Editar Perfil">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div class="p-3 bg-black/40 rounded-xl border border-white/5">
+                            <span class="text-[11px] text-slate-400 font-medium block">Total do Perfil</span>
+                            <span class="text-lg font-bold text-white block mt-0.5">${formattedTotal.primary}</span>
+                            ${formattedTotal.secondary ? `<span class="text-xs text-emerald-400 font-semibold">${formattedTotal.secondary}</span>` : ''}
+                        </div>
+                        <div class="p-3 bg-black/40 rounded-xl border border-white/5">
+                            <span class="text-[11px] text-slate-400 font-medium block">Último Faturamento</span>
+                            <span class="text-lg font-bold text-tiktok-cyan block mt-0.5">${formattedYest.primary}</span>
+                            <span class="text-[10px] text-slate-400">Dia anterior</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // RENDER HISTORY TABLE
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-table-body');
+            if (!tbody) return;
+
+            const searchTerm = document.getElementById('history-search')?.value.toLowerCase() || '';
+            const records = [...appState.records].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            const filtered = records.filter(r => r.date.includes(searchTerm) || r.date.split('-').reverse().join('/').includes(searchTerm));
+
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500">Nenhum registro encontrado.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(r => {
+                const totalUSD = r.c1 + r.c2 + r.c3 + r.c4;
+                const totalBRL = totalUSD * r.rate;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5 transition-colors border-b border-white/5";
+                tr.innerHTML = `
+                    <td class="p-3.5 font-semibold text-white">${r.date.split('-').reverse().join('/')}</td>
+                    <td class="p-3.5 text-slate-300">US$ ${r.c1.toFixed(2)}</td>
+                    <td class="p-3.5 text-slate-300">US$ ${r.c2.toFixed(2)}</td>
+                    <td class="p-3.5 text-slate-300">US$ ${r.c3.toFixed(2)}</td>
+                    <td class="p-3.5 text-slate-300">US$ ${r.c4.toFixed(2)}</td>
+                    <td class="p-3.5 font-bold text-white">US$ ${totalUSD.toFixed(2)}</td>
+                    <td class="p-3.5 font-bold text-emerald-400">R$ ${totalBRL.toFixed(2)}</td>
+                    <td class="p-3.5 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="editEntry('${r.id}')" class="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 flex items-center justify-center text-xs transition-colors" title="Editar">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="deleteEntry('${r.id}')" class="w-7 h-7 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center justify-center text-xs transition-colors" title="Excluir">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // RENDER DISTRIBUTION PROGRESS BARS
+        function renderDistributionBars() {
+            const container = document.getElementById('distribution-progress-bars');
+            if (!container) return;
+
+            const records = appState.records;
+            const totals = [0, 0, 0, 0];
+            let grandTotal = 0;
+
+            records.forEach(r => {
+                totals[0] += r.c1;
+                totals[1] += r.c2;
+                totals[2] += r.c3;
+                totals[3] += r.c4;
+                grandTotal += (r.c1 + r.c2 + r.c3 + r.c4);
+            });
+
+            if (grandTotal === 0) grandTotal = 1;
+
+            container.innerHTML = '';
+
+            appState.accounts.forEach((acc, idx) => {
+                const pct = ((totals[idx] / grandTotal) * 100).toFixed(1);
+
+                const bar = document.createElement('div');
+                bar.className = "space-y-1";
+                bar.innerHTML = `
+                    <div class="flex justify-between text-xs">
+                        <span class="font-semibold text-white">${acc.name} (${acc.handle})</span>
+                        <span class="text-slate-300 font-bold">US$ ${totals[idx].toFixed(2)} (${pct}%)</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-white/5">
+                        <div class="h-full bg-gradient-to-r ${acc.avatarBg} rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                    </div>
+                `;
+                container.appendChild(bar);
+            });
+        }
+
+        // CHARTS IMPLEMENTATION
+        function renderDashboardQuickChart() {
+            const ctx = document.getElementById('dashboardQuickChart');
+            if (!ctx) return;
+
+            const records = [...appState.records]
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .slice(-7);
+
+            const labels = records.map(r => r.date.split('-').reverse().slice(0,2).join('/'));
+            const dataUSD = records.map(r => r.c1 + r.c2 + r.c3 + r.c4);
+
+            if (dashboardChartInstance) dashboardChartInstance.destroy();
+
+            dashboardChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Diário (USD)',
+                        data: dataUSD,
+                        borderColor: '#FF0050',
+                        backgroundColor: 'rgba(255, 0, 80, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#FF0050'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94A3B8', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function updateMainAnalyticsChart() {
+            const ctx = document.getElementById('fullAnalyticsChart');
+            if (!ctx) return;
+
+            const timeframe = document.getElementById('chart-timeframe')?.value || '30';
+            let records = [...appState.records].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (timeframe !== 'all') {
+                records = records.slice(-parseInt(timeframe));
+            }
+
+            const labels = records.map(r => r.date.split('-').reverse().slice(0,2).join('/'));
+
+            if (analyticsChartInstance) analyticsChartInstance.destroy();
+
+            analyticsChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: appState.accounts[0].name, data: records.map(r => r.c1), backgroundColor: '#FF0050', borderRadius: 4 },
+                        { label: appState.accounts[1].name, data: records.map(r => r.c2), backgroundColor: '#A855F7', borderRadius: 4 },
+                        { label: appState.accounts[2].name, data: records.map(r => r.c3), backgroundColor: '#00F2FE', borderRadius: 4 },
+                        { label: appState.accounts[3].name, data: records.map(r => r.c4), backgroundColor: '#10B981', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#E2E8F0', font: { size: 11, family: 'Plus Jakarta Sans' } } }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#94A3B8', font: { size: 10 } } },
+                        y: { stacked: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94A3B8', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        // MODAL ENTRY & CALCULATIONS
+        function setDefaultEntryDate() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            document.getElementById('entry-date').valueAsDate = yesterday;
+            document.getElementById('entry-rate').value = appState.exchangeRate.toFixed(2);
+        }
+
+        function calcModalPreview() {
+            const c1 = parseFloat(document.getElementById('entry-c1').value) || 0;
+            const c2 = parseFloat(document.getElementById('entry-c2').value) || 0;
+            const c3 = parseFloat(document.getElementById('entry-c3').value) || 0;
+            const c4 = parseFloat(document.getElementById('entry-c4').value) || 0;
+            const rate = parseFloat(document.getElementById('entry-rate').value) || appState.exchangeRate;
+
+            const totalUSD = c1 + c2 + c3 + c4;
+            const totalBRL = totalUSD * rate;
+
+            document.getElementById('modal-preview-usd').innerText = `US$ ${totalUSD.toFixed(2)}`;
+            document.getElementById('modal-preview-brl').innerText = `R$ ${totalBRL.toFixed(2)}`;
+        }
+
+        function updateAccountLabelsInModals() {
+            appState.accounts.forEach((acc, idx) => {
+                const lbl = document.getElementById(`lbl-c${idx + 1}`);
+                if (lbl) lbl.innerText = `${acc.name} (USD)`;
+            });
+        }
+
+        function handleSaveEntry(e) {
             e.preventDefault();
-            const novoRegistro = {
-                data: document.getElementById('data-input').value,
-                c1: parseFloat(document.getElementById('c1').value) || 0,
-                c2: parseFloat(document.getElementById('c2').value) || 0,
-                c3: parseFloat(document.getElementById('c3').value) || 0,
-                c4: parseFloat(document.getElementById('c4').value) || 0,
-                cotacao: parseFloat(document.getElementById('cotacao').value) || 5.50
+
+            const editId = document.getElementById('entry-editing-id').value;
+            const dateVal = document.getElementById('entry-date').value;
+            const c1 = parseFloat(document.getElementById('entry-c1').value) || 0;
+            const c2 = parseFloat(document.getElementById('entry-c2').value) || 0;
+            const c3 = parseFloat(document.getElementById('entry-c3').value) || 0;
+            const c4 = parseFloat(document.getElementById('entry-c4').value) || 0;
+            const rate = parseFloat(document.getElementById('entry-rate').value) || appState.exchangeRate;
+
+            if (editId) {
+                const index = appState.records.findIndex(r => r.id === editId);
+                if (index !== -1) {
+                    appState.records[index] = { id: editId, date: dateVal, c1, c2, c3, c4, rate };
+                    showToast('Registro atualizado com sucesso!');
+                }
+            } else {
+                const newRecord = {
+                    id: 'rec_' + Date.now(),
+                    date: dateVal,
+                    c1, c2, c3, c4, rate
+                };
+                appState.records.push(newRecord);
+                showToast('Novo faturamento diário salvo!');
+            }
+
+            saveRecords();
+            renderAllViews();
+            closeModal('modal-entry');
+            resetEntryForm();
+        }
+
+        function resetEntryForm() {
+            document.getElementById('form-entry').reset();
+            document.getElementById('entry-editing-id').value = '';
+            setDefaultEntryDate();
+            calcModalPreview();
+        }
+
+        function editEntry(id) {
+            const record = appState.records.find(r => r.id === id);
+            if (!record) return;
+
+            document.getElementById('entry-editing-id').value = record.id;
+            document.getElementById('entry-date').value = record.date;
+            document.getElementById('entry-c1').value = record.c1;
+            document.getElementById('entry-c2').value = record.c2;
+            document.getElementById('entry-c3').value = record.c3;
+            document.getElementById('entry-c4').value = record.c4;
+            document.getElementById('entry-rate').value = record.rate;
+
+            calcModalPreview();
+            openModal('modal-entry');
+        }
+
+        function deleteEntry(id) {
+            if (confirm('Tem certeza que deseja excluir este registro?')) {
+                appState.records = appState.records.filter(r => r.id !== id);
+                saveRecords();
+                renderAllViews();
+                showToast('Registro excluído.');
+            }
+        }
+
+        // PROFILE EDIT MODAL
+        function openEditAccountModal(index) {
+            const acc = appState.accounts[index];
+            document.getElementById('edit-account-index').value = index;
+            document.getElementById('edit-account-name').value = acc.name;
+            document.getElementById('edit-account-handle').value = acc.handle;
+            document.getElementById('edit-account-niche').value = acc.niche || '';
+
+            openModal('modal-account-edit');
+        }
+
+        function handleSaveAccountProfile(e) {
+            e.preventDefault();
+            const index = parseInt(document.getElementById('edit-account-index').value);
+
+            appState.accounts[index].name = document.getElementById('edit-account-name').value;
+            appState.accounts[index].handle = document.getElementById('edit-account-handle').value;
+            appState.accounts[index].niche = document.getElementById('edit-account-niche').value;
+
+            saveAccounts();
+            updateAccountLabelsInModals();
+            renderAllViews();
+            closeModal('modal-account-edit');
+            showToast('Perfil atualizado!');
+        }
+
+        // MODAL TOGGLERS
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+            }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (id === 'modal-entry') resetEntryForm();
+            }, 300);
+        }
+
+        // EXPORT / IMPORT JSON
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `tiktok_rewards_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('Backup exportado com sucesso!');
+        }
+
+        function importDataJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.records && imported.accounts) {
+                        appState.records = imported.records;
+                        appState.accounts = imported.accounts;
+                        saveRecords();
+                        saveAccounts();
+                        renderAllViews();
+                        closeModal('modal-settings');
+                        showToast('Dados importados com sucesso!');
+                    } else {
+                        alert('Arquivo JSON inválido.');
+                    }
+                } catch (err) {
+                    alert('Erro ao ler o arquivo de backup.');
+                }
             };
+            reader.readAsText(file);
+        }
 
-            registros.push(novoRegistro);
-            localStorage.setItem('tiktok_tracker', JSON.stringify(registros));
-            form.reset();
-            document.getElementById('data-input').valueAsDate = new Date();
-            renderHistorico();
-        });
+        // TOAST NOTIFICATIONS
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
 
-        renderHistorico();
+            const toast = document.createElement('div');
+            toast.className = "bg-slate-900 border border-tiktok-red/40 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0";
+            toast.innerHTML = `
+                <i class="fa-solid fa-circle-check text-tiktok-red"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
     </script>
 </body>
 </html>
